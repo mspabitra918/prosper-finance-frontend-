@@ -34,7 +34,7 @@ export function Contact() {
                   {[
                     {
                       label: "Email",
-                      value: "leads@lendingfinance.site",
+                      value: "info@prosperfinance.com",
                       icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
                     },
                     {
@@ -71,9 +71,7 @@ export function Contact() {
                         <p className="text-xs uppercase tracking-[0.2em] text-accent font-semibold mb-1">
                           {item.label}
                         </p>
-                        <p className="text-surface font-medium">
-                          {item.value}
-                        </p>
+                        <p className="text-surface font-medium">{item.value}</p>
                       </div>
                     </div>
                   ))}
@@ -117,27 +115,29 @@ export function Contact() {
                 </Link>
 
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-6 text-xs text-gray-500">
-                  {["256-bit SSL encryption", "No upfront fees", "No credit impact"].map(
-                    (label) => (
-                      <span
-                        key={label}
-                        className="inline-flex items-center gap-1.5"
+                  {[
+                    "256-bit SSL encryption",
+                    "No upfront fees",
+                    "No credit impact",
+                  ].map((label) => (
+                    <span
+                      key={label}
+                      className="inline-flex items-center gap-1.5"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5 text-primary"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
                       >
-                        <svg
-                          className="w-3.5 h-3.5 text-primary"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        {label}
-                      </span>
-                    )
-                  )}
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {label}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>

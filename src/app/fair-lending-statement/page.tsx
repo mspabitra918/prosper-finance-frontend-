@@ -30,7 +30,7 @@ export default function FairLendingPage() {
                   Equal Opportunity Lender
                 </h2>
                 <p>
-                  {SITE_NAME} is an Lending Club and is committed to fair
+                  {SITE_NAME} is an Prosper Finance and is committed to fair
                   lending practices. We provide equal access to credit for all
                   qualified borrowers regardless of race, color, religion,
                   national origin, sex, marital status, age (provided the

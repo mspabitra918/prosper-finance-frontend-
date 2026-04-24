@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Apply for a Personal Loan",
   description:
-    "Apply for a personal loan from Lending Club in minutes. Competitive rates, fast approval, and direct funding. Check your rate with no credit impact.",
+    "Apply for a personal loan from Prosper Finance in minutes. Competitive rates, fast approval, and direct funding. Check your rate with no credit impact.",
   alternates: { canonical: "/apply" },
 };
 

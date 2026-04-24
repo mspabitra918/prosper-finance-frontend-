@@ -48,7 +48,7 @@ export default function DirectLenderDisclosurePage() {
                     {
                       title: "One Application, One Lender",
                       description:
-                        "Your application is reviewed only by Lending Club. We do not sell or share your application with other lenders.",
+                        "Your application is reviewed only by Prosper Finance. We do not sell or share your application with other lenders.",
                     },
                     {
                       title: "Faster Decisions",

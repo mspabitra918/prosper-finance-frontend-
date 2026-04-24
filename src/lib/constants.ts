@@ -2,7 +2,7 @@ export const SITE_NAME = "Prosper Finance";
 export const SITE_URL = "https://www.prosperfinance.site";
 export const SITE_DESCRIPTION =
   "Prosper Finance is a direct personal loan provider offering competitive rates for debt consolidation, home improvement, medical expenses, and more. Apply online in minutes.";
-export const BUSINESS_EMAIL = "leads@lendingfinance.site";
+export const BUSINESS_EMAIL = "info@prosperfinance.com";
 
 export const BUSINESS_PHONE = "(747) 200-5228";
 

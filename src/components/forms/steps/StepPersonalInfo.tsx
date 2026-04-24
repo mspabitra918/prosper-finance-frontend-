@@ -41,7 +41,7 @@ export default function StepPersonalInfo({ data, updateData, onNext }: Props) {
         zero impact on your credit score.
       </p>
       <p className="text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2 mb-6">
-        Lending Club is a California-based direct lender serving all 50 US
+        Prosper Finance is a California-based direct lender serving all 50 US
         states.
       </p>
 
