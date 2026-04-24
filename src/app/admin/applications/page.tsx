@@ -2,8 +2,13 @@
 
 import React, { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LoanApplication } from "@/src/types";
+import {
+  authHeaders,
+  clearAdminSession,
+  fetchAdminMe,
+} from "@/src/lib/adminAuth";
 import {
   RiSearchLine,
   RiCalendarLine,
@@ -21,6 +26,7 @@ const todayISO = () => {
 };
 
 function AdminApplicationsInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const initialDate = searchParams.get("date") || todayISO();
@@ -29,11 +35,35 @@ function AdminApplicationsInner() {
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [queryInput, setQueryInput] = useState(initialQuery);
 
+  const [authChecked, setAuthChecked] = useState(false);
   const [applications, setApplications] = useState<LoanApplication[]>([]);
   const [total, setTotal] = useState(0);
   const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const verify = async () => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        router.replace("/admin/login");
+        return;
+      }
+      const user = await fetchAdminMe(apiUrl);
+      if (cancelled) return;
+      if (!user || user.role !== "admin") {
+        clearAdminSession();
+        router.replace("/admin/login");
+        return;
+      }
+      setAuthChecked(true);
+    };
+    verify();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   const syncUrl = useCallback((date: string, q: string) => {
     if (typeof window === "undefined") return;
@@ -52,6 +82,7 @@ function AdminApplicationsInner() {
   }, [queryInput]);
 
   useEffect(() => {
+    if (!authChecked) return;
     let cancelled = false;
 
     const run = async () => {
@@ -69,9 +100,14 @@ function AdminApplicationsInner() {
           `${process.env.NEXT_PUBLIC_API_URL}/api/v1/loans/applications${suffix}`,
           {
             method: "GET",
-            headers: { "Content-Type": "application/json" },
+            headers: authHeaders({ "Content-Type": "application/json" }),
           },
         );
+        if (response.status === 401 || response.status === 403) {
+          clearAdminSession();
+          router.replace("/admin/login");
+          return;
+        }
         if (!response.ok) throw new Error("Failed to fetch applications");
         const data = await response.json();
         if (cancelled) return;
@@ -96,7 +132,7 @@ function AdminApplicationsInner() {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate, debouncedQuery, syncUrl]);
+  }, [authChecked, selectedDate, debouncedQuery, syncUrl, router]);
 
   const handleDateChange = (value: string) => {
     setSelectedDate(value);

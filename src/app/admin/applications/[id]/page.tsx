@@ -4,6 +4,11 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { LoanApplication } from "@/src/types";
 import {
+  authHeaders,
+  clearAdminSession,
+  fetchAdminMe,
+} from "@/src/lib/adminAuth";
+import {
   RiArrowLeftLine,
   RiUserLine,
   RiMapPinLine,
@@ -15,33 +20,109 @@ import {
   RiInformationLine,
 } from "react-icons/ri";
 
+const DetailSection = ({
+  title,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}) => (
+  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-full">
+    <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+      <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500">
+        <Icon className="w-4 h-4" />
+      </div>
+      <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+        {title}
+      </h2>
+    </div>
+    <div className="p-6 grid grid-cols-1 gap-6">{children}</div>
+  </div>
+);
+
+const DetailItem = ({ label, value }: { label: string; value: unknown }) => (
+  <div>
+    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">
+      {label}
+    </p>
+    <p className="text-sm text-slate-900 font-semibold break-words">
+      {value !== undefined && value !== null && value !== "" ? (
+        String(value)
+      ) : (
+        <span className="text-slate-300">N/A</span>
+      )}
+    </p>
+  </div>
+);
+
 export default function ApplicationDetails() {
   const { id } = useParams();
   const router = useRouter();
   const [application, setApplication] = useState<LoanApplication | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+    const verify = async () => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        router.replace("/admin/login");
+        return;
+      }
+      const user = await fetchAdminMe(apiUrl);
+      if (cancelled) return;
+      if (!user || user.role !== "admin") {
+        clearAdminSession();
+        router.replace("/admin/login");
+        return;
+      }
+      setAuthChecked(true);
+    };
+    verify();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  useEffect(() => {
+    if (!authChecked || !id) return;
+    let cancelled = false;
     const fetchApplication = async () => {
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/v1/loans/${id}`,
+          {
+            method: "GET",
+            headers: authHeaders({ "Content-Type": "application/json" }),
+          },
         );
+        if (response.status === 401 || response.status === 403) {
+          clearAdminSession();
+          router.replace("/admin/login");
+          return;
+        }
         if (!response.ok) {
           throw new Error("Failed to fetch application details");
         }
         const data = await response.json();
+        if (cancelled) return;
         setApplication(data?.loan);
       } catch (err: any) {
-        setError(err.message || "Something went wrong");
+        if (!cancelled) setError(err.message || "Something went wrong");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    if (id) fetchApplication();
-  }, [id]);
+    fetchApplication();
+    return () => {
+      cancelled = true;
+    };
+  }, [authChecked, id, router]);
 
   if (loading) return <div className="p-8 text-center text-lg">Loading...</div>;
   if (error)
@@ -50,39 +131,6 @@ export default function ApplicationDetails() {
     );
   if (!application)
     return <div className="p-8 text-center text-lg">Application not found</div>;
-
-  const DetailSection = ({
-    title,
-    icon: Icon,
-    children,
-  }: {
-    title: string;
-    icon: any;
-    children: React.ReactNode;
-  }) => (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-full">
-      <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
-        <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500">
-          <Icon className="w-4 h-4" />
-        </div>
-        <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-          {title}
-        </h2>
-      </div>
-      <div className="p-6 grid grid-cols-1 gap-6">{children}</div>
-    </div>
-  );
-
-  const DetailItem = ({ label, value }: { label: string; value: any }) => (
-    <div>
-      <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">
-        {label}
-      </p>
-      <p className="text-sm text-slate-900 font-semibold break-words">
-        {value?.toString() || <span className="text-slate-300">N/A</span>}
-      </p>
-    </div>
-  );
 
   const handleStatusUpdate = async (newStatus: "approved" | "declined") => {
     if (!confirm(`Are you sure you want to ${newStatus} this application?`))
@@ -93,10 +141,15 @@ export default function ApplicationDetails() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/loans/${id}/status`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ status: newStatus }),
         },
       );
+      if (response.status === 401 || response.status === 403) {
+        clearAdminSession();
+        router.replace("/admin/login");
+        return;
+      }
       if (!response.ok) throw new Error("Failed to update status");
       const data = await response.json();
       setApplication(data.loan);
