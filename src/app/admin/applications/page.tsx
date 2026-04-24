@@ -120,10 +120,10 @@ function AdminApplicationsInner() {
       </div>
     );
 
-  const totalAmount = applications.reduce(
-    (sum, app) => sum + (app.applicantLoanAmount || 0),
-    0,
-  );
+  // const totalAmount = applications.reduce(
+  //   (sum, app) => sum + Number(app.applicantLoanAmount || 0),
+  //   0,
+  // );
 
   return (
     <div className="p-6 md:p-10 max-w-[1600px] mx-auto">
